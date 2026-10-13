@@ -80,8 +80,13 @@
 
     <main id="konten">
       <!-- 1. Hero -->
-      <section class="hero-section" aria-labelledby="hero-title">
-        <img class="hero-background" data-cms-image="hero_image" src="public/images/kampus-hero.jpg" alt="" aria-hidden="true" width="1536" height="1024" fetchpriority="high">
+      <section class="hero-section" aria-labelledby="hero-title" data-hero-slideshow>
+        <div class="hero-slides" aria-hidden="true">
+          <img class="hero-background is-active" data-hero-slide data-cms-image="hero_image" src="public/images/kampus-hero.jpg" alt="" width="1536" height="1024" fetchpriority="high">
+          <img class="hero-background" data-hero-slide data-hero-src="public/images/kehidupan-sekolah.jpg" data-cms-image="hero_image_2" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" width="1264" height="840">
+          <img class="hero-background" data-hero-slide data-hero-src="public/images/dkv-studio.jpg" data-cms-image="hero_image_3" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" width="1280" height="960">
+          <img class="hero-background" data-hero-slide data-hero-src="public/images/tkr-workshop.jpg" data-cms-image="hero_image_4" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" width="1280" height="960">
+        </div>
         <div class="hero-overlay" aria-hidden="true"></div>
         <div class="container hero-grid">
           <div class="hero-copy">
@@ -95,6 +100,16 @@
             </div>
             <p class="hero-location"><span class="location-pin" aria-hidden="true">⌖</span> <span data-cms="location_text">Lohgung · Brondong · Lamongan, Jawa Timur</span></p>
           </div>
+        </div>
+        <div class="hero-slider-controls" data-hero-controls role="group" aria-label="Navigasi gambar banner" hidden>
+          <button class="hero-arrow" type="button" data-hero-prev aria-label="Tampilkan gambar sebelumnya">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 5.5-7 6.5 7 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="hero-slide-count" aria-hidden="true"><span data-hero-current>01</span><span> / </span><span data-hero-total>04</span></span>
+          <span class="sr-only" data-hero-status aria-live="polite" aria-atomic="true">Gambar 1 dari 4</span>
+          <button class="hero-arrow" type="button" data-hero-next aria-label="Tampilkan gambar berikutnya">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9.5 5.5 7 6.5-7 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
       </section>
 

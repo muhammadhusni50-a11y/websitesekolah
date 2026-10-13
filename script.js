@@ -28,6 +28,61 @@ window.addEventListener("resize", () => {
 const year = document.querySelector("#current-year");
 if (year) year.textContent = new Date().getFullYear();
 
+function initHeroSlideshow() {
+  const slideshow = document.querySelector("[data-hero-slideshow]");
+  const slides = Array.from(slideshow?.querySelectorAll("[data-hero-slide]") ?? []);
+  const controls = slideshow?.querySelector("[data-hero-controls]");
+  const previousButton = controls?.querySelector("[data-hero-prev]");
+  const nextButton = controls?.querySelector("[data-hero-next]");
+  const currentNumber = controls?.querySelector("[data-hero-current]");
+  const totalNumber = controls?.querySelector("[data-hero-total]");
+  const status = controls?.querySelector("[data-hero-status]");
+  if (!slideshow || slides.length < 2 || !controls || !previousButton || !nextButton) return;
+
+  let currentIndex = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
+  const formatNumber = (number) => String(number).padStart(2, "0");
+
+  function loadSlideImage(slide) {
+    if (!slide.dataset.heroSrc) return;
+    const currentSource = slide.getAttribute("src") || "";
+    const placeholder = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    if (currentSource === placeholder) {
+      const source = safeImage(slide.dataset.heroSrc, "");
+      if (source) slide.setAttribute("src", source);
+    }
+    delete slide.dataset.heroSrc;
+  }
+
+  function showSlide(index, announce = true) {
+    currentIndex = (index + slides.length) % slides.length;
+    const activeSlide = slides[currentIndex];
+    loadSlideImage(activeSlide);
+    slides.forEach((slide, slideIndex) => {
+      slide.classList.toggle("is-active", slideIndex === currentIndex);
+    });
+    if (currentNumber) currentNumber.textContent = formatNumber(currentIndex + 1);
+    if (totalNumber) totalNumber.textContent = formatNumber(slides.length);
+    if (status && announce) status.textContent = `Gambar ${currentIndex + 1} dari ${slides.length}`;
+    loadSlideImage(slides[(currentIndex + 1) % slides.length]);
+  }
+
+  previousButton.addEventListener("click", () => showSlide(currentIndex - 1));
+  nextButton.addEventListener("click", () => showSlide(currentIndex + 1));
+  slideshow.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showSlide(currentIndex - 1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showSlide(currentIndex + 1);
+    }
+  });
+  showSlide(currentIndex, false);
+  controls.hidden = false;
+}
+
+initHeroSlideshow();
+
 const galleryDialog = document.querySelector("#gallery-lightbox");
 const lightboxImage = document.querySelector("#lightbox-image");
 const lightboxCaption = document.querySelector("#lightbox-caption");
@@ -103,10 +158,13 @@ function applySettings(settings = {}) {
     }
   });
 
-  const imageKeys = ["logo_image", "hero_image", "about_image", "dkv_image", "tkr_image"];
+  const imageKeys = ["logo_image", "hero_image", "hero_image_2", "hero_image_3", "hero_image_4", "about_image", "dkv_image", "tkr_image"];
   imageKeys.forEach((key) => {
     const image = document.querySelector(`[data-cms-image="${key}"]`);
-    if (image && settings[key]) image.src = safeImage(settings[key], image.src);
+    if (!image || !settings[key]) return;
+    const fallback = image.getAttribute("src") || image.dataset.heroSrc || "";
+    const source = safeImage(settings[key], fallback);
+    if (source) image.src = source;
   });
   const customLogo = safeImage(settings.logo_image, "");
   document.querySelectorAll(".brand-mark").forEach((mark) => {

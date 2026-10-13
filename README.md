@@ -13,7 +13,7 @@ Buka `http://localhost:8000`. Preview statis menyajikan `index.html`; server Pyt
 ## Fitur CMS
 
 - Masuk admin melalui `/admin/login.php`; buat akun pertama satu kali melalui `/admin/setup.php` setelah database siap.
-- Ubah logo, teks beranda, identitas dan kontak, tautan media sosial, warna tema, gambar hero/jurusan/tentang, jumlah siswa/pengajar, serta visibilitas beberapa bagian.
+- Ubah logo, teks beranda, identitas dan kontak, tautan media sosial, warna tema, gambar hero (empat slide dengan tombol panah kiri/kanan), gambar jurusan/tentang, jumlah siswa/pengajar, serta visibilitas beberapa bagian.
 - Tambah, ubah, terbitkan, simpan sebagai draf, atau hapus berita. Berita terbit otomatis tampil di beranda, halaman artikelnya, RSS, dan sitemap.
 - Kelola profil guru dan foto galeri; unggahan gambar JPG/PNG/WebP divalidasi dan disimpan di `uploads/`.
 - Sinkronkan media Instagram Graph API dan video terbaru YouTube Data API v3 di sisi server. Rahasia API disimpan pada entri privat database, tidak termasuk keluaran `api/home.php` dan tidak dikirim ke JavaScript.

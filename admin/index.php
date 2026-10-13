@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 save_setting($key, strtolower($value), true);
             }
 
-            foreach (['logo_image', 'hero_image', 'about_image', 'dkv_image', 'tkr_image'] as $key) {
+            foreach (['logo_image', 'hero_image', 'hero_image_2', 'hero_image_3', 'hero_image_4', 'about_image', 'dkv_image', 'tkr_image'] as $key) {
                 $reference = trim((string) ($_POST[$key] ?? ''));
                 $uploaded = admin_upload_image($key . '_file');
                 if ($uploaded !== null) {
@@ -478,8 +478,17 @@ $tabs = [
               <div class="field"><label for="hero-subtitle">Judul hero, baris 2</label><input id="hero-subtitle" type="text" name="hero_subtitle" value="<?= h($settings['hero_subtitle'] ?? '') ?>"></div>
               <div class="field"><label for="hero-highlight">Sorotan hero</label><input id="hero-highlight" type="text" name="hero_highlight" value="<?= h($settings['hero_highlight'] ?? '') ?>"></div>
               <div class="field full"><label for="hero-description">Deskripsi hero</label><textarea id="hero-description" name="hero_description" rows="3"><?= h($settings['hero_description'] ?? '') ?></textarea></div>
-              <?php foreach (['logo_image' => 'Logo sekolah', 'hero_image' => 'Gambar hero', 'about_image' => 'Gambar tentang sekolah', 'dkv_image' => 'Gambar DKV', 'tkr_image' => 'Gambar TKR'] as $key => $label): ?>
-                <div class="field"><label for="<?= h($key) ?>"><?= h($label) ?> — path/URL</label><input id="<?= h($key) ?>" type="text" name="<?= h($key) ?>" value="<?= h($settings[$key] ?? '') ?>"><span class="help"><?= $key === 'logo_image' ? 'Biarkan kosong untuk memakai logo bawaan. PNG transparan direkomendasikan.' : 'Path lokal atau URL HTTPS; gambar yang diunggah disimpan di uploads/.' ?></span></div>
+              <?php foreach ([
+                'logo_image' => ['label' => 'Logo sekolah', 'default' => ''],
+                'hero_image' => ['label' => 'Gambar hero — slide 1', 'default' => 'public/images/kampus-hero.jpg'],
+                'hero_image_2' => ['label' => 'Gambar hero — slide 2', 'default' => 'public/images/kehidupan-sekolah.jpg'],
+                'hero_image_3' => ['label' => 'Gambar hero — slide 3', 'default' => 'public/images/dkv-studio.jpg'],
+                'hero_image_4' => ['label' => 'Gambar hero — slide 4', 'default' => 'public/images/tkr-workshop.jpg'],
+                'about_image' => ['label' => 'Gambar tentang sekolah', 'default' => 'public/images/kehidupan-sekolah.jpg'],
+                'dkv_image' => ['label' => 'Gambar DKV', 'default' => 'public/images/dkv-studio.jpg'],
+                'tkr_image' => ['label' => 'Gambar TKR', 'default' => 'public/images/tkr-workshop.jpg'],
+              ] as $key => $image): ?>
+                <div class="field"><label for="<?= h($key) ?>"><?= h($image['label']) ?> — path/URL</label><input id="<?= h($key) ?>" type="text" name="<?= h($key) ?>" value="<?= h(($settings[$key] ?? '') !== '' ? $settings[$key] : $image['default']) ?>"><span class="help"><?php if ($key === 'logo_image'): ?>Biarkan kosong untuk memakai logo bawaan. PNG transparan direkomendasikan.<?php elseif (str_starts_with($key, 'hero_image')): ?>Path lokal atau URL HTTPS; unggah untuk mengganti gambar slide ini.<?php else: ?>Path lokal atau URL HTTPS; gambar yang diunggah disimpan di uploads/.<?php endif; ?></span></div>
                 <div class="field"><label for="<?= h($key) ?>-file">Unggah gambar</label><input id="<?= h($key) ?>-file" type="file" name="<?= h($key) ?>_file" accept="image/jpeg,image/png,image/webp"></div>
               <?php endforeach; ?>
               <div class="field"><label for="about-title">Judul bagian tentang</label><input id="about-title" type="text" name="about_title" value="<?= h($settings['about_title'] ?? '') ?>"></div>
@@ -526,7 +535,7 @@ $tabs = [
             <?php
               // The credentials are intentionally handled in a dedicated form. Public fields use the values above;
               // these hidden fields preserve their current values when API credentials are saved.
-              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','fact_dkv_code','fact_dkv_title','fact_dkv_detail','fact_tkr_code','fact_tkr_title','fact_tkr_detail','fact_student_count','fact_student_title','fact_student_detail','fact_teacher_count','fact_teacher_title','fact_teacher_detail','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','logo_image','hero_image','about_image','dkv_image','tkr_image'] as $keepKey):
+              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','fact_dkv_code','fact_dkv_title','fact_dkv_detail','fact_tkr_code','fact_tkr_title','fact_tkr_detail','fact_student_count','fact_student_title','fact_student_detail','fact_teacher_count','fact_teacher_title','fact_teacher_detail','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','logo_image','hero_image','hero_image_2','hero_image_3','hero_image_4','about_image','dkv_image','tkr_image'] as $keepKey):
                 $keepValue = (string) ($settings[$keepKey] ?? '');
                 echo '<input type="hidden" name="' . h($keepKey) . '" value="' . h($keepValue) . '">';
               endforeach;
