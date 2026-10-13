@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Berita &amp; Informasi SMK Asy-Syafi'iyah Lohgung</title>
+    <link>https://smkasysyafiiyah.sch.id/</link>
+    <description>Informasi jurusan, kegiatan, dan pendidikan dari SMK Terpadu Ponpes Asy-Syafi'iyah.</description>
+    <language>id-ID</language>
+    <lastBuildDate>Tue, 13 Oct 2026 00:00:00 +0700</lastBuildDate>
+    <atom:link href="https://smkasysyafiiyah.sch.id/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Mengenal kompetensi Desain Komunikasi Visual</title>
+      <link>https://smkasysyafiiyah.sch.id/#jurusan-dkv</link>
+      <guid isPermaLink="false">smkasysyafiiyah:info-dkv</guid>
+      <pubDate>Tue, 13 Oct 2026 00:00:00 +0700</pubDate>
+      <description>Informasi umum tentang desain visual, fotografi, dan produksi media dalam kompetensi DKV.</description>
+      <category>Informasi Jurusan</category>
+    </item>
+    <item>
+      <title>Mengenal kompetensi Teknik Kendaraan Ringan</title>
+      <link>https://smkasysyafiiyah.sch.id/#jurusan-tkr</link>
+      <guid isPermaLink="false">smkasysyafiiyah:info-tkr</guid>
+      <pubDate>Tue, 13 Oct 2026 00:00:00 +0700</pubDate>
+      <description>Informasi umum tentang pembelajaran teknik dan perawatan kendaraan ringan.</description>
+      <category>Informasi Jurusan</category>
+    </item>
+    <item>
+      <title>Nilai JUARA dalam keseharian belajar</title>
+      <link>https://smkasysyafiiyah.sch.id/#nilai-juara</link>
+      <guid isPermaLink="false">smkasysyafiiyah:nilai-juara</guid>
+      <pubDate>Tue, 13 Oct 2026 00:00:00 +0700</pubDate>
+      <description>Mengenal Jujur, Unggul, Adaptif, Religius, dan Amanah sebagai nilai sekolah.</description>
+      <category>Pendidikan Karakter</category>
+    </item>
+  </channel>
+</rss>

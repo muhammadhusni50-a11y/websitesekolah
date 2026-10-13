@@ -1,0 +1,29 @@
+Options -Indexes
+DirectoryIndex index.php index.html
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+<IfModule mod_authz_core.c>
+  <FilesMatch "^(config\.php|README\.md|.*\.(sql|ini|log|bak|dist))$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "^(config\.php|README\.md|.*\.(sql|ini|log|bak|dist))$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\. - [F,L]
+  RewriteRule ^feed\.xml$ feed.php [L]
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+  RewriteRule ^berita/([A-Za-z0-9-]+)/?$ post.php?slug=$1 [L,QSA]
+</IfModule>

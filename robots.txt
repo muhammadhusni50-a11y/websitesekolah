@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/setup.php
+Disallow: /app/
+Disallow: /api/
+Disallow: /cron/
+Disallow: /database/
+
+Sitemap: https://smkasysyafiiyah.sch.id/sitemap.xml
