@@ -96,8 +96,6 @@ button { color: inherit; font: inherit; }
 .hero-arrow:hover { transform: translateY(-1px); border-color: var(--gold); background: var(--gold); color: var(--green-dark); }
 .hero-arrow:active { transform: scale(.96); }
 .hero-arrow svg { width: 21px; height: 21px; }
-.hero-arrow svg[hidden] { display: none; }
-.hero-autoplay-toggle svg { width: 18px; height: 18px; }
 .hero-slide-count { min-width: 48px; color: rgba(255,255,255,.9); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-align: center; text-shadow: 0 1px 5px rgba(0,0,0,.35); }
 .hero-copy { max-width: 650px; }
 .eyebrow, .section-label { display: flex; align-items: center; gap: 9px; margin: 0 0 15px; color: var(--green); font-size: 11px; line-height: 1.4; font-weight: 800; letter-spacing: .12em; }

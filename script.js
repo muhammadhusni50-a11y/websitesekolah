@@ -34,20 +34,16 @@ function initHeroSlideshow() {
   const controls = slideshow?.querySelector("[data-hero-controls]");
   const previousButton = controls?.querySelector("[data-hero-prev]");
   const nextButton = controls?.querySelector("[data-hero-next]");
-  const toggleButton = controls?.querySelector("[data-hero-toggle]");
-  const pauseIcon = toggleButton?.querySelector("[data-autoplay-pause-icon]");
-  const playIcon = toggleButton?.querySelector("[data-autoplay-play-icon]");
   const currentNumber = controls?.querySelector("[data-hero-current]");
   const totalNumber = controls?.querySelector("[data-hero-total]");
   const status = controls?.querySelector("[data-hero-status]");
-  if (!slideshow || slides.length < 2 || !controls || !previousButton || !nextButton || !toggleButton) return;
+  if (!slideshow || slides.length < 2 || !controls || !previousButton || !nextButton) return;
 
   let currentIndex = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
   const motionPreference = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
-  let autoplayPaused = motionPreference?.matches ?? false;
-  let pointerOver = false;
+  let motionReduced = motionPreference?.matches ?? false;
   let autoplayTimer = null;
-  const autoplayDelay = 7000;
+  const autoplayDelay = 5000;
   const formatNumber = (number) => String(number).padStart(2, "0");
 
   function loadSlideImage(slide) {
@@ -61,18 +57,12 @@ function initHeroSlideshow() {
     delete slide.dataset.heroSrc;
   }
 
-  function updateAutoplayControl() {
-    toggleButton.setAttribute("aria-label", autoplayPaused ? "Lanjutkan slideshow otomatis" : "Jeda slideshow otomatis");
-    if (pauseIcon) pauseIcon.hidden = autoplayPaused;
-    if (playIcon) playIcon.hidden = !autoplayPaused;
-  }
-
   function scheduleAutoplay() {
     if (autoplayTimer !== null) {
       window.clearTimeout(autoplayTimer);
       autoplayTimer = null;
     }
-    if (autoplayPaused || pointerOver || document.hidden) return;
+    if (motionReduced || document.hidden) return;
     autoplayTimer = window.setTimeout(() => {
       autoplayTimer = null;
       showSlide(currentIndex + 1, false);
@@ -95,22 +85,11 @@ function initHeroSlideshow() {
 
   previousButton.addEventListener("click", () => showSlide(currentIndex - 1));
   nextButton.addEventListener("click", () => showSlide(currentIndex + 1));
-  toggleButton.addEventListener("click", () => {
-    autoplayPaused = !autoplayPaused;
-    updateAutoplayControl();
-    scheduleAutoplay();
-  });
-  slideshow.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "touch") return;
-    pointerOver = true;
-    scheduleAutoplay();
-  });
-  slideshow.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "touch") return;
-    pointerOver = false;
-    scheduleAutoplay();
-  });
   document.addEventListener("visibilitychange", scheduleAutoplay);
+  motionPreference?.addEventListener?.("change", (event) => {
+    motionReduced = event.matches;
+    scheduleAutoplay();
+  });
   slideshow.addEventListener("keydown", (event) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
@@ -121,7 +100,6 @@ function initHeroSlideshow() {
     }
   });
   showSlide(currentIndex, false, false);
-  updateAutoplayControl();
   controls.hidden = false;
   scheduleAutoplay();
 }
