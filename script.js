@@ -34,12 +34,20 @@ function initHeroSlideshow() {
   const controls = slideshow?.querySelector("[data-hero-controls]");
   const previousButton = controls?.querySelector("[data-hero-prev]");
   const nextButton = controls?.querySelector("[data-hero-next]");
+  const toggleButton = controls?.querySelector("[data-hero-toggle]");
+  const pauseIcon = toggleButton?.querySelector("[data-autoplay-pause-icon]");
+  const playIcon = toggleButton?.querySelector("[data-autoplay-play-icon]");
   const currentNumber = controls?.querySelector("[data-hero-current]");
   const totalNumber = controls?.querySelector("[data-hero-total]");
   const status = controls?.querySelector("[data-hero-status]");
-  if (!slideshow || slides.length < 2 || !controls || !previousButton || !nextButton) return;
+  if (!slideshow || slides.length < 2 || !controls || !previousButton || !nextButton || !toggleButton) return;
 
   let currentIndex = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
+  const motionPreference = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  let autoplayPaused = motionPreference?.matches ?? false;
+  let pointerOver = false;
+  let autoplayTimer = null;
+  const autoplayDelay = 7000;
   const formatNumber = (number) => String(number).padStart(2, "0");
 
   function loadSlideImage(slide) {
@@ -53,7 +61,25 @@ function initHeroSlideshow() {
     delete slide.dataset.heroSrc;
   }
 
-  function showSlide(index, announce = true) {
+  function updateAutoplayControl() {
+    toggleButton.setAttribute("aria-label", autoplayPaused ? "Lanjutkan slideshow otomatis" : "Jeda slideshow otomatis");
+    if (pauseIcon) pauseIcon.hidden = autoplayPaused;
+    if (playIcon) playIcon.hidden = !autoplayPaused;
+  }
+
+  function scheduleAutoplay() {
+    if (autoplayTimer !== null) {
+      window.clearTimeout(autoplayTimer);
+      autoplayTimer = null;
+    }
+    if (autoplayPaused || pointerOver || document.hidden) return;
+    autoplayTimer = window.setTimeout(() => {
+      autoplayTimer = null;
+      showSlide(currentIndex + 1, false);
+    }, autoplayDelay);
+  }
+
+  function showSlide(index, announce = true, scheduleNext = true) {
     currentIndex = (index + slides.length) % slides.length;
     const activeSlide = slides[currentIndex];
     loadSlideImage(activeSlide);
@@ -64,10 +90,27 @@ function initHeroSlideshow() {
     if (totalNumber) totalNumber.textContent = formatNumber(slides.length);
     if (status && announce) status.textContent = `Gambar ${currentIndex + 1} dari ${slides.length}`;
     loadSlideImage(slides[(currentIndex + 1) % slides.length]);
+    if (scheduleNext) scheduleAutoplay();
   }
 
   previousButton.addEventListener("click", () => showSlide(currentIndex - 1));
   nextButton.addEventListener("click", () => showSlide(currentIndex + 1));
+  toggleButton.addEventListener("click", () => {
+    autoplayPaused = !autoplayPaused;
+    updateAutoplayControl();
+    scheduleAutoplay();
+  });
+  slideshow.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "touch") return;
+    pointerOver = true;
+    scheduleAutoplay();
+  });
+  slideshow.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "touch") return;
+    pointerOver = false;
+    scheduleAutoplay();
+  });
+  document.addEventListener("visibilitychange", scheduleAutoplay);
   slideshow.addEventListener("keydown", (event) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
@@ -77,8 +120,10 @@ function initHeroSlideshow() {
       showSlide(currentIndex + 1);
     }
   });
-  showSlide(currentIndex, false);
+  showSlide(currentIndex, false, false);
+  updateAutoplayControl();
   controls.hidden = false;
+  scheduleAutoplay();
 }
 
 initHeroSlideshow();
@@ -153,8 +198,14 @@ function applySettings(settings = {}) {
     theme_dark: "--green-dark",
   };
   Object.entries(themeMap).forEach(([key, token]) => {
-    if (/^#[\da-f]{6}$/i.test(String(settings[key] ?? ""))) {
-      document.documentElement.style.setProperty(token, settings[key]);
+    let color = String(settings[key] ?? "");
+    if (key === "theme_primary" && color.toLowerCase() === "#0e4a3b") color = "#0A3F2F";
+    if (/^#[\da-f]{6}$/i.test(color)) {
+      document.documentElement.style.setProperty(token, color);
+      if (key === "theme_primary") {
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) themeColor.content = color;
+      }
     }
   });
 

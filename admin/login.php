@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Masuk admin | CMS SMK Asy-Syafi'iyah</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#1d3329;font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}.wrap{width:min(460px,calc(100% - 32px));margin:10vh auto}.brand{margin:0 0 7px;color:#0e4a3b;font-size:12px;font-weight:800;letter-spacing:.13em}.card{padding:clamp(22px,5vw,38px);border:1px solid #d8e3dd;border-radius:16px;background:#fff;box-shadow:0 14px 40px #163c2b12}h1{margin:0;color:#15271f;font-size:30px;line-height:1.2;letter-spacing:-.04em}p{color:#66756c}label{display:block;margin:15px 0 6px;color:#33483d;font-size:12px;font-weight:750}input{width:100%;min-height:46px;padding:10px 12px;border:1px solid #ccd8d1;border-radius:8px;font:inherit}input:focus{outline:3px solid #f2b70566;border-color:#0e4a3b}.button{width:100%;min-height:48px;margin-top:22px;border:0;border-radius:8px;background:#0e4a3b;color:#fff;font:inherit;font-weight:800;cursor:pointer}.alert{margin:15px 0;padding:12px 14px;border-radius:8px;background:#fff2e7;color:#8e4215;font-size:13px}.help{margin-top:20px;font-size:12px}.help a{color:#0e4a3b;font-weight:800}
+    *{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#1d3329;font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}.wrap{width:min(460px,calc(100% - 32px));margin:10vh auto}.brand{margin:0 0 7px;color:#0A3F2F;font-size:12px;font-weight:800;letter-spacing:.13em}.card{padding:clamp(22px,5vw,38px);border:1px solid #d8e3dd;border-radius:16px;background:#fff;box-shadow:0 14px 40px #163c2b12}h1{margin:0;color:#15271f;font-size:30px;line-height:1.2;letter-spacing:-.04em}p{color:#66756c}label{display:block;margin:15px 0 6px;color:#33483d;font-size:12px;font-weight:750}input{width:100%;min-height:46px;padding:10px 12px;border:1px solid #ccd8d1;border-radius:8px;font:inherit}input:focus{outline:3px solid #f2b70566;border-color:#0A3F2F}.button{width:100%;min-height:48px;margin-top:22px;border:0;border-radius:8px;background:#0A3F2F;color:#fff;font:inherit;font-weight:800;cursor:pointer}.alert{margin:15px 0;padding:12px 14px;border-radius:8px;background:#fff2e7;color:#8e4215;font-size:13px}.help{margin-top:20px;font-size:12px}.help a{color:#0A3F2F;font-weight:800}
   </style>
 </head>
 <body>
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <section class="card" aria-labelledby="title">
       <h1 id="title">Masuk panel admin</h1>
       <p>Kelola konten website sekolah dengan akun admin.</p>
-      <?php if (isset($_GET['created'])): ?><div class="alert" role="status" style="background:#e8f2ee;color:#0e4a3b">Akun admin berhasil dibuat. Silakan masuk.</div><?php endif; ?>
+      <?php if (isset($_GET['created'])): ?><div class="alert" role="status" style="background:#e8f2ee;color:#0A3F2F">Akun admin berhasil dibuat. Silakan masuk.</div><?php endif; ?>
       <?php if ($error !== ''): ?><div class="alert" role="alert"><?= h($error) ?></div><?php endif; ?>
       <?php if (!$setupAvailable): ?>
       <form method="post" action="login.php" autocomplete="on">

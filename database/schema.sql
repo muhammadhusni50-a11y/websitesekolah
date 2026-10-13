@@ -132,7 +132,7 @@ INSERT IGNORE INTO settings (setting_key, setting_value, is_public) VALUES
 ('fact_teacher_count', '—', 1),
 ('fact_teacher_title', 'Jumlah Pengajar', 1),
 ('fact_teacher_detail', 'Data resmi belum diisi', 1),
-('theme_primary', '#0e4a3b', 1),
+('theme_primary', '#0A3F2F', 1),
 ('theme_dark', '#083c30', 1),
 ('theme_soft', '#e8f2ee', 1),
 ('theme_accent', '#f2b705', 1),
