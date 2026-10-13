@@ -34,6 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'about_description' => 700, 'majors_title' => 120, 'majors_highlight' => 160,
                 'majors_description' => 700, 'dkv_title' => 160, 'dkv_description' => 700,
                 'tkr_title' => 160, 'tkr_description' => 700,
+                'fact_dkv_code' => 24, 'fact_dkv_title' => 80, 'fact_dkv_detail' => 120,
+                'fact_tkr_code' => 24, 'fact_tkr_title' => 80, 'fact_tkr_detail' => 120,
+                'fact_student_count' => 24, 'fact_student_title' => 80, 'fact_student_detail' => 120,
+                'fact_teacher_count' => 24, 'fact_teacher_title' => 80, 'fact_teacher_detail' => 120,
                 'instagram_url' => 240, 'facebook_url' => 240, 'youtube_url' => 240,
             ];
             foreach ($textLimits as $key => $maximum) {
@@ -69,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 save_setting($key, strtolower($value), true);
             }
 
-            foreach (['hero_image', 'about_image', 'dkv_image', 'tkr_image'] as $key) {
+            foreach (['logo_image', 'hero_image', 'about_image', 'dkv_image', 'tkr_image'] as $key) {
                 $reference = trim((string) ($_POST[$key] ?? ''));
                 $uploaded = admin_upload_image($key . '_file');
                 if ($uploaded !== null) {
@@ -474,8 +478,8 @@ $tabs = [
               <div class="field"><label for="hero-subtitle">Judul hero, baris 2</label><input id="hero-subtitle" type="text" name="hero_subtitle" value="<?= h($settings['hero_subtitle'] ?? '') ?>"></div>
               <div class="field"><label for="hero-highlight">Sorotan hero</label><input id="hero-highlight" type="text" name="hero_highlight" value="<?= h($settings['hero_highlight'] ?? '') ?>"></div>
               <div class="field full"><label for="hero-description">Deskripsi hero</label><textarea id="hero-description" name="hero_description" rows="3"><?= h($settings['hero_description'] ?? '') ?></textarea></div>
-              <?php foreach (['hero_image' => 'Gambar hero', 'about_image' => 'Gambar tentang sekolah', 'dkv_image' => 'Gambar DKV', 'tkr_image' => 'Gambar TKR'] as $key => $label): ?>
-                <div class="field"><label for="<?= h($key) ?>"><?= h($label) ?> — path/URL</label><input id="<?= h($key) ?>" type="text" name="<?= h($key) ?>" value="<?= h($settings[$key] ?? '') ?>"><span class="help">Path lokal atau URL HTTPS; gambar yang diunggah disimpan di uploads/.</span></div>
+              <?php foreach (['logo_image' => 'Logo sekolah', 'hero_image' => 'Gambar hero', 'about_image' => 'Gambar tentang sekolah', 'dkv_image' => 'Gambar DKV', 'tkr_image' => 'Gambar TKR'] as $key => $label): ?>
+                <div class="field"><label for="<?= h($key) ?>"><?= h($label) ?> — path/URL</label><input id="<?= h($key) ?>" type="text" name="<?= h($key) ?>" value="<?= h($settings[$key] ?? '') ?>"><span class="help"><?= $key === 'logo_image' ? 'Biarkan kosong untuk memakai logo bawaan. PNG transparan direkomendasikan.' : 'Path lokal atau URL HTTPS; gambar yang diunggah disimpan di uploads/.' ?></span></div>
                 <div class="field"><label for="<?= h($key) ?>-file">Unggah gambar</label><input id="<?= h($key) ?>-file" type="file" name="<?= h($key) ?>_file" accept="image/jpeg,image/png,image/webp"></div>
               <?php endforeach; ?>
               <div class="field"><label for="about-title">Judul bagian tentang</label><input id="about-title" type="text" name="about_title" value="<?= h($settings['about_title'] ?? '') ?>"></div>
@@ -489,6 +493,20 @@ $tabs = [
               <div class="field"><label for="tkr-title">Nama jurusan TKR</label><input id="tkr-title" type="text" name="tkr_title" value="<?= h($settings['tkr_title'] ?? '') ?>"></div>
               <div class="field"><label for="dkv-description">Deskripsi DKV</label><textarea id="dkv-description" name="dkv_description" rows="3"><?= h($settings['dkv_description'] ?? '') ?></textarea></div>
               <div class="field"><label for="tkr-description">Deskripsi TKR</label><textarea id="tkr-description" name="tkr_description" rows="3"><?= h($settings['tkr_description'] ?? '') ?></textarea></div>
+              <div class="field full"><label>Ringkasan di bawah banner hero</label><div class="form-grid">
+                <div class="field"><label for="fact-dkv-code">Kode jurusan pertama</label><input id="fact-dkv-code" type="text" name="fact_dkv_code" maxlength="24" value="<?= h($settings['fact_dkv_code'] ?? 'DKV') ?>"></div>
+                <div class="field"><label for="fact-dkv-title">Label jurusan pertama</label><input id="fact-dkv-title" type="text" name="fact_dkv_title" maxlength="80" value="<?= h($settings['fact_dkv_title'] ?? 'Program Keahlian') ?>"></div>
+                <div class="field full"><label for="fact-dkv-detail">Nama lengkap jurusan pertama</label><input id="fact-dkv-detail" type="text" name="fact_dkv_detail" maxlength="120" value="<?= h($settings['fact_dkv_detail'] ?? 'Desain Komunikasi Visual') ?>"></div>
+                <div class="field"><label for="fact-tkr-code">Kode jurusan kedua</label><input id="fact-tkr-code" type="text" name="fact_tkr_code" maxlength="24" value="<?= h($settings['fact_tkr_code'] ?? 'TKR') ?>"></div>
+                <div class="field"><label for="fact-tkr-title">Label jurusan kedua</label><input id="fact-tkr-title" type="text" name="fact_tkr_title" maxlength="80" value="<?= h($settings['fact_tkr_title'] ?? 'Program Keahlian') ?>"></div>
+                <div class="field full"><label for="fact-tkr-detail">Nama lengkap jurusan kedua</label><input id="fact-tkr-detail" type="text" name="fact_tkr_detail" maxlength="120" value="<?= h($settings['fact_tkr_detail'] ?? 'Teknik Kendaraan Ringan') ?>"></div>
+                <div class="field"><label for="fact-student-count">Jumlah siswa</label><input id="fact-student-count" type="text" name="fact_student_count" maxlength="24" value="<?= h($settings['fact_student_count'] ?? '—') ?>"><span class="help">Masukkan angka yang sudah diverifikasi sekolah.</span></div>
+                <div class="field"><label for="fact-student-title">Label jumlah siswa</label><input id="fact-student-title" type="text" name="fact_student_title" maxlength="80" value="<?= h($settings['fact_student_title'] ?? 'Jumlah Siswa') ?>"></div>
+                <div class="field full"><label for="fact-student-detail">Keterangan jumlah siswa</label><input id="fact-student-detail" type="text" name="fact_student_detail" maxlength="120" value="<?= h($settings['fact_student_detail'] ?? 'Data resmi belum diisi') ?>"></div>
+                <div class="field"><label for="fact-teacher-count">Jumlah pengajar</label><input id="fact-teacher-count" type="text" name="fact_teacher_count" maxlength="24" value="<?= h($settings['fact_teacher_count'] ?? '—') ?>"><span class="help">Masukkan angka yang sudah diverifikasi sekolah.</span></div>
+                <div class="field"><label for="fact-teacher-title">Label jumlah pengajar</label><input id="fact-teacher-title" type="text" name="fact_teacher_title" maxlength="80" value="<?= h($settings['fact_teacher_title'] ?? 'Jumlah Pengajar') ?>"></div>
+                <div class="field full"><label for="fact-teacher-detail">Keterangan jumlah pengajar</label><input id="fact-teacher-detail" type="text" name="fact_teacher_detail" maxlength="120" value="<?= h($settings['fact_teacher_detail'] ?? 'Data resmi belum diisi') ?>"></div>
+              </div><span class="help">Nilai dan keterangan dapat diubah kapan saja. Jumlah siswa/pengajar tidak diisi dengan angka perkiraan.</span></div>
               <div class="field"><label for="instagram-url">Tautan Instagram publik</label><input id="instagram-url" type="url" name="instagram_url" value="<?= h($settings['instagram_url'] ?? '') ?>"></div>
               <div class="field"><label for="facebook-url">Tautan Facebook publik</label><input id="facebook-url" type="url" name="facebook_url" value="<?= h($settings['facebook_url'] ?? '') ?>"></div>
               <div class="field full"><label for="youtube-url">Tautan kanal YouTube publik</label><input id="youtube-url" type="url" name="youtube_url" value="<?= h($settings['youtube_url'] ?? '') ?>"></div>
@@ -508,7 +526,7 @@ $tabs = [
             <?php
               // The credentials are intentionally handled in a dedicated form. Public fields use the values above;
               // these hidden fields preserve their current values when API credentials are saved.
-              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','hero_image','about_image','dkv_image','tkr_image'] as $keepKey):
+              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','fact_dkv_code','fact_dkv_title','fact_dkv_detail','fact_tkr_code','fact_tkr_title','fact_tkr_detail','fact_student_count','fact_student_title','fact_student_detail','fact_teacher_count','fact_teacher_title','fact_teacher_detail','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','logo_image','hero_image','about_image','dkv_image','tkr_image'] as $keepKey):
                 $keepValue = (string) ($settings[$keepKey] ?? '');
                 echo '<input type="hidden" name="' . h($keepKey) . '" value="' . h($keepValue) . '">';
               endforeach;

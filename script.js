@@ -86,6 +86,8 @@ function applySettings(settings = {}) {
     "hero_highlight", "hero_description", "location_text", "about_title", "about_highlight",
     "about_lead", "about_description", "majors_title", "majors_highlight", "majors_description",
     "dkv_title", "dkv_description", "tkr_title", "tkr_description", "school_name", "school_address", "contact_address",
+    "fact_dkv_code", "fact_dkv_title", "fact_dkv_detail", "fact_tkr_code", "fact_tkr_title", "fact_tkr_detail",
+    "fact_student_count", "fact_student_title", "fact_student_detail", "fact_teacher_count", "fact_teacher_title", "fact_teacher_detail",
   ];
   textKeys.forEach((key) => setCMSValue(key, settings[key]));
 
@@ -101,10 +103,17 @@ function applySettings(settings = {}) {
     }
   });
 
-  const imageKeys = ["hero_image", "about_image", "dkv_image", "tkr_image"];
+  const imageKeys = ["logo_image", "hero_image", "about_image", "dkv_image", "tkr_image"];
   imageKeys.forEach((key) => {
     const image = document.querySelector(`[data-cms-image="${key}"]`);
     if (image && settings[key]) image.src = safeImage(settings[key], image.src);
+  });
+  const customLogo = safeImage(settings.logo_image, "");
+  document.querySelectorAll(".brand-mark").forEach((mark) => {
+    const logo = mark.querySelector('[data-cms-image="logo_image"]');
+    if (!logo) return;
+    logo.hidden = !customLogo;
+    mark.classList.toggle("has-logo", Boolean(customLogo));
   });
 
   if (settings.site_title) document.title = settings.site_title;
