@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/app/bootstrap.php';
 require_once dirname(__DIR__) . '/app/admin.php';
 admin_require_login();
 $pdo = db();
-$allowedTabs = ['dashboard', 'posts', 'teachers', 'gallery', 'settings'];
+$allowedTabs = ['dashboard', 'posts', 'teachers', 'gallery', 'ppdb', 'settings'];
 $activeTab = (string) ($_GET['tab'] ?? 'dashboard');
 if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = 'dashboard';
@@ -22,7 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         admin_verify_csrf();
         $action = (string) ($_POST['action'] ?? '');
 
-        if ($action === 'save_settings') {
+        if ($action === 'update_ppdb_status') {
+            $id = max(0, (int) ($_POST['id'] ?? 0));
+            $status = (string) ($_POST['status'] ?? '');
+            $allowedPpdbStatuses = ['baru', 'dihubungi', 'proses', 'diterima', 'tidak_dilanjutkan'];
+            if ($id < 1 || !in_array($status, $allowedPpdbStatuses, true)) {
+                throw new RuntimeException('Status pendaftar tidak valid.');
+            }
+            $statement = $pdo->prepare('UPDATE ppdb_applicants SET status=:status WHERE id=:id');
+            $statement->execute(['status' => $status, 'id' => $id]);
+            $success = 'Status pendaftar berhasil diperbarui.';
+            $activeTab = 'ppdb';
+
+        } elseif ($action === 'delete_ppdb_applicant') {
+            $id = max(0, (int) ($_POST['id'] ?? 0));
+            if ($id < 1) {
+                throw new RuntimeException('Pendaftar yang dipilih tidak valid.');
+            }
+            $statement = $pdo->prepare('DELETE FROM ppdb_applicants WHERE id=:id');
+            $statement->execute(['id' => $id]);
+            $success = 'Data pendaftar berhasil dihapus.';
+            $activeTab = 'ppdb';
+
+        } elseif ($action === 'save_settings') {
             $pdo->beginTransaction();
             $textLimits = [
                 'site_title' => 180, 'meta_description' => 320, 'site_url' => 240,
@@ -39,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'fact_student_count' => 24, 'fact_student_title' => 80, 'fact_student_detail' => 120,
                 'fact_teacher_count' => 24, 'fact_teacher_title' => 80, 'fact_teacher_detail' => 120,
                 'instagram_url' => 240, 'facebook_url' => 240, 'youtube_url' => 240,
+                'ppdb_page_title' => 120, 'ppdb_page_highlight' => 100, 'ppdb_page_intro' => 500, 'ppdb_page_notice' => 1000,
             ];
             foreach ($textLimits as $key => $maximum) {
                 $value = admin_clip((string) ($_POST[$key] ?? ''), $maximum);
@@ -324,6 +347,20 @@ $counts = [
 $posts = $pdo->query('SELECT id,slug,title,category,status,published_at FROM posts ORDER BY updated_at DESC,id DESC LIMIT 50')->fetchAll();
 $teachers = $pdo->query('SELECT id,name,`role`,department,photo,sort_order,is_published FROM teachers ORDER BY sort_order,id')->fetchAll();
 $galleryItems = $pdo->query('SELECT id,image,caption,source,sort_order,is_published FROM gallery ORDER BY sort_order,id DESC LIMIT 100')->fetchAll();
+$ppdbApplicants = [];
+$ppdbTableReady = true;
+try {
+    $ppdbApplicants = $pdo->query('SELECT id,nama,alamat,asal_sekolah,email,jurusan,nomor_hp,status,created_at FROM ppdb_applicants ORDER BY created_at DESC,id DESC LIMIT 200')->fetchAll();
+} catch (Throwable $exception) {
+    $ppdbTableReady = false;
+}
+$ppdbStatusLabels = [
+    'baru' => 'Baru',
+    'dihubungi' => 'Sudah dihubungi',
+    'proses' => 'Proses PPDB',
+    'diterima' => 'Diterima',
+    'tidak_dilanjutkan' => 'Tidak melanjutkan',
+];
 
 $editPost = null;
 if (isset($_GET['edit_post'])) {
@@ -352,6 +389,7 @@ $tabs = [
     'posts' => 'Berita & informasi',
     'teachers' => 'Galeri guru',
     'gallery' => 'Galeri foto',
+    'ppdb' => 'Pendaftar PPDB',
     'settings' => 'Tampilan & integrasi',
 ];
 ?><!doctype html>
@@ -362,7 +400,7 @@ $tabs = [
   <meta name="robots" content="noindex,nofollow">
   <title>Panel admin | CMS SMK Asy-Syafi'iyah</title>
   <style>
-    :root{--green:#0A3F2F;--green-dark:#083c30;--soft:#e8f2ee;--gold:#f2b705;--ink:#15271f;--muted:#6b7b71;--line:#dce6e0;--page:#f4f7f5;--white:#fff;--radius:13px;--shadow:0 8px 26px #1d402c0a}*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--green);text-decoration:none}button,input,select,textarea{font:inherit}button{cursor:pointer}.top{position:sticky;z-index:10;top:0;min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:10px max(18px,calc((100vw - 1200px)/2));border-bottom:1px solid var(--line);background:#fff}.brand{display:flex;align-items:center;gap:11px;color:var(--green);font-weight:850}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--green);color:var(--gold);font-size:18px}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:.12em}.top-actions{display:flex;align-items:center;gap:14px}.top-actions span{color:var(--muted);font-size:12px}.logout{padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--green);font-weight:750}.layout{width:min(1200px,calc(100% - 36px));display:grid;grid-template-columns:210px minmax(0,1fr);gap:26px;margin:25px auto 60px}.side{position:sticky;top:88px;align-self:start;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.side a{display:flex;align-items:center;gap:10px;min-height:43px;padding:9px 11px;border-radius:8px;color:#506158;font-size:12px;font-weight:750}.side a.active,.side a:hover{background:var(--soft);color:var(--green)}.main{min-width:0}.page-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:0 0 18px}.page-head h1{margin:0;font-size:clamp(25px,3vw,34px);line-height:1.15;letter-spacing:-.04em}.page-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.open-site{padding:9px 13px;border-radius:8px;background:var(--green);color:#fff;font-size:11px;font-weight:800}.notice{margin:0 0 17px;padding:12px 15px;border-radius:9px;font-size:13px}.notice.success{background:#e5f5eb;color:#155a37}.notice.error{background:#fff0e9;color:#91421b}.card{margin-bottom:17px;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.card h2{margin:0 0 4px;font-size:18px;letter-spacing:-.02em}.card h3{margin:0 0 13px;font-size:14px}.muted{color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:17px}.metric{padding:16px;border:1px solid var(--line);border-radius:11px;background:#fff}.metric strong{display:block;color:var(--green);font-size:27px;line-height:1.1}.metric span{color:var(--muted);font-size:11px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:block;margin:0 0 6px;color:#35483e;font-size:11px;font-weight:800}input[type=text],input[type=email],input[type=password],input[type=url],input[type=datetime-local],input[type=number],input[type=color],select,textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #cfdbd4;border-radius:8px;background:#fff;color:var(--ink)}input[type=color]{height:44px;padding:5px}textarea{min-height:100px;resize:vertical}textarea.large{min-height:200px}input:focus,select:focus,textarea:focus{outline:3px solid #f2b70555;border-color:var(--green)}.help{display:block;margin-top:5px;color:#7a8980;font-size:10px;line-height:1.5}.checks{display:flex;flex-wrap:wrap;gap:8px 15px}.check{display:inline-flex;align-items:center;gap:7px;color:#40544a;font-size:12px}.check input{accent-color:var(--green)}.button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border:0;border-radius:8px;background:var(--green);color:#fff;font-size:12px;font-weight:800}.button:hover{background:var(--green-dark)}.button.secondary{border:1px solid var(--line);background:#fff;color:var(--green)}.button.danger{background:#fff2ed;color:#98401e}.form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:17px}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px 9px;border-bottom:1px solid #e9efeb;text-align:left;vertical-align:middle}th{color:#76857c;font-size:10px;text-transform:uppercase;letter-spacing:.06em}td strong{display:block;color:#2b3d33;font-size:12px}td small{color:var(--muted)}.actions{display:flex;align-items:center;gap:7px;white-space:nowrap}.actions a,.actions button{padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--green);font-size:10px;font-weight:750}.actions button{color:#91421b}.status{display:inline-block;padding:3px 8px;border-radius:20px;background:var(--soft);color:var(--green);font-size:10px;font-weight:800}.status.draft{background:#f0f1f0;color:#6b756e}.preview{width:64px;height:46px;object-fit:cover;border-radius:6px;background:var(--soft)}.subhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}.subhead h2{margin:0}.secret-row{padding:14px 0;border-bottom:1px solid #e8eeea}.secret-row:last-child{border-bottom:0}.secret-status{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;color:#597064;font-size:10px}.secret-status::before{width:7px;height:7px;border-radius:50%;background:#9ba9a0;content:""}.secret-status.on::before{background:#31a66b}.secret-status.on{color:#22734c}.danger-box{border-color:#f0d6ca;background:#fffdfb}.fine-print{font-size:11px;line-height:1.65;color:#6c7b72}.empty{padding:20px;border:1px dashed #ccd9d1;border-radius:9px;color:var(--muted);font-size:12px;text-align:center}.setup-note{padding:14px;border-radius:8px;background:#fff8e3;color:#66501a;font-size:12px}
+    :root{--green:#0A3F2F;--green-dark:#083c30;--soft:#e8f2ee;--gold:#f2b705;--ink:#15271f;--muted:#6b7b71;--line:#dce6e0;--page:#f4f7f5;--white:#fff;--radius:13px;--shadow:0 8px 26px #1d402c0a}*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--green);text-decoration:none}button,input,select,textarea{font:inherit}button{cursor:pointer}.top{position:sticky;z-index:10;top:0;min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:10px max(18px,calc((100vw - 1200px)/2));border-bottom:1px solid var(--line);background:#fff}.brand{display:flex;align-items:center;gap:11px;color:var(--green);font-weight:850}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--green);color:var(--gold);font-size:18px}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:.12em}.top-actions{display:flex;align-items:center;gap:14px}.top-actions span{color:var(--muted);font-size:12px}.logout{padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--green);font-weight:750}.layout{width:min(1200px,calc(100% - 36px));display:grid;grid-template-columns:210px minmax(0,1fr);gap:26px;margin:25px auto 60px}.side{position:sticky;top:88px;align-self:start;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.side a{display:flex;align-items:center;gap:10px;min-height:43px;padding:9px 11px;border-radius:8px;color:#506158;font-size:12px;font-weight:750}.side a.active,.side a:hover{background:var(--soft);color:var(--green)}.main{min-width:0}.page-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:0 0 18px}.page-head h1{margin:0;font-size:clamp(25px,3vw,34px);line-height:1.15;letter-spacing:-.04em}.page-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.open-site{padding:9px 13px;border-radius:8px;background:var(--green);color:#fff;font-size:11px;font-weight:800}.notice{margin:0 0 17px;padding:12px 15px;border-radius:9px;font-size:13px}.notice.success{background:#e5f5eb;color:#155a37}.notice.error{background:#fff0e9;color:#91421b}.card{margin-bottom:17px;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.card h2{margin:0 0 4px;font-size:18px;letter-spacing:-.02em}.card h3{margin:0 0 13px;font-size:14px}.muted{color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:17px}.metric{padding:16px;border:1px solid var(--line);border-radius:11px;background:#fff}.metric strong{display:block;color:var(--green);font-size:27px;line-height:1.1}.metric span{color:var(--muted);font-size:11px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:block;margin:0 0 6px;color:#35483e;font-size:11px;font-weight:800}input[type=text],input[type=email],input[type=password],input[type=url],input[type=datetime-local],input[type=number],input[type=color],select,textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #cfdbd4;border-radius:8px;background:#fff;color:var(--ink)}input[type=color]{height:44px;padding:5px}textarea{min-height:100px;resize:vertical}textarea.large{min-height:200px}input:focus,select:focus,textarea:focus{outline:3px solid #f2b70555;border-color:var(--green)}.help{display:block;margin-top:5px;color:#7a8980;font-size:10px;line-height:1.5}.checks{display:flex;flex-wrap:wrap;gap:8px 15px}.check{display:inline-flex;align-items:center;gap:7px;color:#40544a;font-size:12px}.check input{accent-color:var(--green)}.button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border:0;border-radius:8px;background:var(--green);color:#fff;font-size:12px;font-weight:800}.button:hover{background:var(--green-dark)}.button.secondary{border:1px solid var(--line);background:#fff;color:var(--green)}.button.danger{background:#fff2ed;color:#98401e}.form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:17px}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px 9px;border-bottom:1px solid #e9efeb;text-align:left;vertical-align:middle}th{color:#76857c;font-size:10px;text-transform:uppercase;letter-spacing:.06em}td strong{display:block;color:#2b3d33;font-size:12px}td small{color:var(--muted)}.actions{display:flex;align-items:center;gap:7px;white-space:nowrap}.actions a,.actions button{padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--green);font-size:10px;font-weight:750}.actions button{color:#91421b}.status{display:inline-block;padding:3px 8px;border-radius:20px;background:var(--soft);color:var(--green);font-size:10px;font-weight:800}.status.draft{background:#f0f1f0;color:#6b756e}.preview{width:64px;height:46px;object-fit:cover;border-radius:6px;background:var(--soft)}.subhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}.subhead h2{margin:0}.secret-row{padding:14px 0;border-bottom:1px solid #e8eeea}.secret-row:last-child{border-bottom:0}.secret-status{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;color:#597064;font-size:10px}.secret-status::before{width:7px;height:7px;border-radius:50%;background:#9ba9a0;content:""}.secret-status.on::before{background:#31a66b}.secret-status.on{color:#22734c}.danger-box{border-color:#f0d6ca;background:#fffdfb}.fine-print{font-size:11px;line-height:1.65;color:#6c7b72}.empty{padding:20px;border:1px dashed #ccd9d1;border-radius:9px;color:var(--muted);font-size:12px;text-align:center}.setup-note{padding:14px;border-radius:8px;background:#fff8e3;color:#66501a;font-size:12px}.ppdb-status-form{display:flex;align-items:center;gap:6px}.ppdb-status-form select{width:auto;min-height:31px;padding:5px 7px;font-size:10px}
     @media(max-width:900px){.layout{grid-template-columns:1fr;gap:16px}.side{position:static;display:flex;overflow-x:auto;gap:3px;padding:6px}.side a{flex:0 0 auto}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:620px){.top{padding-inline:14px}.top-actions span{display:none}.layout{width:calc(100% - 24px);margin-top:14px}.page-head{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:15px}.metrics{gap:8px}.metric{padding:12px}.metric strong{font-size:23px}.side a{font-size:10px;padding:7px}.open-site{width:100%;text-align:center}}
   </style>
@@ -388,7 +426,7 @@ $tabs = [
           <div class="metric"><strong><?= $counts['gallery'] ?></strong><span>Foto galeri tampil</span></div>
           <div class="metric"><strong><?= $counts['videos'] ?></strong><span>Video YouTube tersinkron</span></div>
         </div>
-        <section class="card"><h2>Mulai kelola situs</h2><p class="muted">Atur teks, warna, dan gambar beranda; tambahkan profil guru serta berita; unggah dokumentasi; dan hubungkan akun media sosial melalui kredensial API server.</p><div class="form-actions"><a class="button" href="index.php?tab=settings">Atur tampilan &amp; integrasi</a><a class="button secondary" href="index.php?tab=posts">Kelola berita</a><a class="button secondary" href="index.php?tab=teachers">Kelola guru</a></div></section>
+        <section class="card"><h2>Mulai kelola situs</h2><p class="muted">Atur teks, warna, dan gambar beranda; tambahkan profil guru serta berita; unggah dokumentasi; dan hubungkan akun media sosial melalui kredensial API server.</p><div class="form-actions"><a class="button" href="index.php?tab=settings">Atur tampilan &amp; integrasi</a><a class="button secondary" href="index.php?tab=posts">Kelola berita</a><a class="button secondary" href="index.php?tab=teachers">Kelola guru</a><a class="button secondary" href="index.php?tab=ppdb">Pendaftar PPDB</a></div></section>
         <section class="card"><h2>Sebelum rilis</h2><p class="fine-print">Ganti foto dan profil contoh dengan materi resmi. Pastikan domain pada pengaturan situs benar, verifikasi akses admin dengan kata sandi kuat, lalu jadwalkan cron sinkronisasi jika API sosial sudah disiapkan. Jangan memasukkan token API ke tautan publik atau berkas JavaScript.</p><div class="setup-note">Foto peran guru yang sudah ada hanya contoh. Nama guru, gelar, foto, dan kualifikasi resmi perlu dikonfirmasi sekolah.</div></section>
       <?php elseif ($activeTab === 'posts'): ?>
         <?php $p = $editPost ?: []; ?>
@@ -461,6 +499,47 @@ $tabs = [
         <section class="card"><h2>Daftar galeri</h2><div class="table-scroll"><table><thead><tr><th>Pratinjau</th><th>Foto</th><th>Sumber</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
           <?php foreach ($galleryItems as $item): ?><tr><td><img class="preview" src="<?= h($item['image']) ?>" alt=""></td><td><strong><?= h($item['caption']) ?></strong><small><?= h($item['image']) ?></small></td><td><?= $item['source'] === 'instagram' ? 'Instagram' : 'Manual' ?></td><td><span class="status <?= (int) $item['is_published'] ? '' : 'draft' ?>"><?= (int) $item['is_published'] ? 'Tampil' : 'Disimpan' ?></span></td><td><div class="actions"><a href="index.php?tab=gallery&amp;edit_gallery=<?= (int) $item['id'] ?>">Ubah</a><form method="post" onsubmit="return confirm('Hapus foto ini?')"><?= admin_csrf_field() ?><input type="hidden" name="action" value="delete_gallery"><input type="hidden" name="tab" value="gallery"><input type="hidden" name="id" value="<?= (int) $item['id'] ?>"><button type="submit">Hapus</button></form></div></td></tr><?php endforeach; ?>
         </tbody></table></div><?php if (!$galleryItems): ?><div class="empty">Belum ada foto galeri.</div><?php endif; ?></section>
+      <?php elseif ($activeTab === 'ppdb'): ?>
+        <section class="card">
+          <h2>Data minat calon siswa</h2>
+          <p class="muted">Maksimal 200 data terbaru ditampilkan. Informasi ini bersifat pribadi dan hanya digunakan untuk tindak lanjut PPDB oleh admin sekolah.</p>
+          <div class="setup-note">Jadwal, persyaratan, biaya, serta keputusan penerimaan tetap perlu dikonfirmasi oleh pihak sekolah. Jangan membagikan data pendaftar melalui kanal publik.</div>
+        </section>
+        <?php if (!$ppdbTableReady): ?>
+          <section class="card"><div class="empty">Tabel pendaftar belum tersedia. Impor <code>database/migrations/20261014_create_ppdb_applicants.sql</code> melalui phpMyAdmin, lalu muat ulang panel ini.</div></section>
+        <?php elseif ($ppdbApplicants): ?>
+          <section class="card">
+            <div class="table-scroll"><table><thead><tr><th>Calon siswa</th><th>Jurusan</th><th>Kontak</th><th>Alamat</th><th>Dikirim</th><th>Status &amp; aksi</th></tr></thead><tbody>
+              <?php foreach ($ppdbApplicants as $applicant): ?>
+                <?php $applicantStatus = (string) $applicant['status']; ?>
+                <tr>
+                  <td><strong><?= h($applicant['nama']) ?></strong><small>Asal sekolah: <?= h($applicant['asal_sekolah']) ?></small></td>
+                  <td><span class="status"><?= h($applicant['jurusan']) ?></span></td>
+                  <td><strong><a href="mailto:<?= h($applicant['email']) ?>"><?= h($applicant['email']) ?></a></strong><small><a href="tel:<?= h($applicant['nomor_hp']) ?>"><?= h($applicant['nomor_hp']) ?></a></small></td>
+                  <td><details><summary>Lihat alamat</summary><div class="fine-print"><?= nl2br(h($applicant['alamat'])) ?></div></details></td>
+                  <td><?= h(indonesian_date((string) $applicant['created_at'])) ?></td>
+                  <td>
+                    <span class="status"><?= h($ppdbStatusLabels[$applicantStatus] ?? 'Baru') ?></span>
+                    <div class="actions" style="margin-top:7px">
+                      <form class="ppdb-status-form" method="post" aria-label="Perbarui status <?= h($applicant['nama']) ?>">
+                        <?= admin_csrf_field() ?><input type="hidden" name="action" value="update_ppdb_status"><input type="hidden" name="tab" value="ppdb"><input type="hidden" name="id" value="<?= (int) $applicant['id'] ?>">
+                        <select name="status" aria-label="Pilih status pendaftar">
+                          <?php foreach ($ppdbStatusLabels as $statusValue => $statusLabel): ?><option value="<?= h($statusValue) ?>" <?= $applicantStatus === $statusValue ? 'selected' : '' ?>><?= h($statusLabel) ?></option><?php endforeach; ?>
+                        </select>
+                        <button type="submit">Simpan</button>
+                      </form>
+                      <form method="post" onsubmit="return confirm('Hapus data calon siswa ini secara permanen?')">
+                        <?= admin_csrf_field() ?><input type="hidden" name="action" value="delete_ppdb_applicant"><input type="hidden" name="tab" value="ppdb"><input type="hidden" name="id" value="<?= (int) $applicant['id'] ?>"><button type="submit">Hapus</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody></table></div>
+          </section>
+        <?php else: ?>
+          <section class="card"><div class="empty">Belum ada data minat PPDB yang masuk.</div></section>
+        <?php endif; ?>
       <?php elseif ($activeTab === 'settings'): ?>
         <section class="card"><h2>Teks, identitas, dan tampilan beranda</h2><p class="muted">Edit konten dan warna website. Isi sekolah yang belum dikonfirmasi sebaiknya tidak dipublikasikan.</p>
           <form method="post" enctype="multipart/form-data">
@@ -505,6 +584,12 @@ $tabs = [
               <div class="field"><label for="tkr-title">Nama jurusan TKR</label><input id="tkr-title" type="text" name="tkr_title" value="<?= h($settings['tkr_title'] ?? '') ?>"></div>
               <div class="field"><label for="dkv-description">Deskripsi DKV</label><textarea id="dkv-description" name="dkv_description" rows="3"><?= h($settings['dkv_description'] ?? '') ?></textarea></div>
               <div class="field"><label for="tkr-description">Deskripsi TKR</label><textarea id="tkr-description" name="tkr_description" rows="3"><?= h($settings['tkr_description'] ?? '') ?></textarea></div>
+              <div class="field full"><label>Konten halaman PPDB</label><div class="form-grid">
+                <div class="field"><label for="ppdb-page-title">Judul halaman</label><input id="ppdb-page-title" type="text" name="ppdb_page_title" maxlength="120" value="<?= h($settings['ppdb_page_title'] ?? 'Mulai langkahmu bersama') ?>"></div>
+                <div class="field"><label for="ppdb-page-highlight">Teks sorotan</label><input id="ppdb-page-highlight" type="text" name="ppdb_page_highlight" maxlength="100" value="<?= h($settings['ppdb_page_highlight'] ?? 'JUARA.') ?>"></div>
+                <div class="field full"><label for="ppdb-page-intro">Pengantar PPDB</label><textarea id="ppdb-page-intro" name="ppdb_page_intro" maxlength="500" rows="3"><?= h($settings['ppdb_page_intro'] ?? 'Kenali program keahlian dan sampaikan minat awal untuk bergabung di SMK Terpadu Ponpes Asy-Syafi\'iyah Lohgung.') ?></textarea></div>
+                <div class="field full"><label for="ppdb-page-notice">Catatan / informasi resmi PPDB</label><textarea id="ppdb-page-notice" name="ppdb_page_notice" maxlength="1000" rows="4"><?= h($settings['ppdb_page_notice'] ?? 'Formulir ini menyampaikan minat awal, bukan pendaftaran final atau jaminan penerimaan. Jadwal, biaya, persyaratan, dan daya tampung belum dicantumkan karena perlu dikonfirmasi oleh sekolah.') ?></textarea><span class="help">Gunakan hanya informasi yang telah dikonfirmasi sekolah—misalnya jadwal, biaya, persyaratan, atau kuota.</span></div>
+              </div></div>
               <div class="field full"><label>Ringkasan di bawah banner hero</label><div class="form-grid">
                 <div class="field"><label for="fact-dkv-code">Kode jurusan pertama</label><input id="fact-dkv-code" type="text" name="fact_dkv_code" maxlength="24" value="<?= h($settings['fact_dkv_code'] ?? 'DKV') ?>"></div>
                 <div class="field"><label for="fact-dkv-title">Label jurusan pertama</label><input id="fact-dkv-title" type="text" name="fact_dkv_title" maxlength="80" value="<?= h($settings['fact_dkv_title'] ?? 'Program Keahlian') ?>"></div>
@@ -538,7 +623,7 @@ $tabs = [
             <?php
               // The credentials are intentionally handled in a dedicated form. Public fields use the values above;
               // these hidden fields preserve their current values when API credentials are saved.
-              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','fact_dkv_code','fact_dkv_title','fact_dkv_detail','fact_tkr_code','fact_tkr_title','fact_tkr_detail','fact_student_count','fact_student_title','fact_student_detail','fact_teacher_count','fact_teacher_title','fact_teacher_detail','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','logo_image','hero_image','hero_image_2','hero_image_3','hero_image_4','about_image','dkv_image','tkr_image'] as $keepKey):
+              foreach (['site_title','meta_description','site_url','brand_short','brand_tagline','school_name','school_address','contact_address','contact_email','location_text','hero_kicker','hero_title','hero_subtitle','hero_highlight','hero_description','about_title','about_highlight','about_lead','about_description','majors_title','majors_highlight','majors_description','dkv_title','dkv_description','tkr_title','tkr_description','ppdb_page_title','ppdb_page_highlight','ppdb_page_intro','ppdb_page_notice','fact_dkv_code','fact_dkv_title','fact_dkv_detail','fact_tkr_code','fact_tkr_title','fact_tkr_detail','fact_student_count','fact_student_title','fact_student_detail','fact_teacher_count','fact_teacher_title','fact_teacher_detail','instagram_url','facebook_url','youtube_url','theme_primary','theme_dark','theme_soft','theme_accent','logo_image','hero_image','hero_image_2','hero_image_3','hero_image_4','about_image','dkv_image','tkr_image'] as $keepKey):
                 $keepValue = (string) ($settings[$keepKey] ?? '');
                 echo '<input type="hidden" name="' . h($keepKey) . '" value="' . h($keepValue) . '">';
               endforeach;
@@ -565,6 +650,16 @@ $tabs = [
           <div class="setup-note" style="margin-top:15px"><strong>Jadwal cron cPanel:</strong> jalankan <code>php /home/USERNAME/public_html/cron/sync-social.php</code> setiap 30–60 menit (sesuaikan lokasi PHP dan document root pada akun hosting). File cron diblokir dari akses web.</div>
         </section>
         <section class="card"><h2>Ganti kata sandi admin</h2><form method="post"><input type="hidden" name="action" value="change_password"><input type="hidden" name="tab" value="settings"><?= admin_csrf_field() ?><div class="form-grid"><div class="field"><label for="old-password">Kata sandi saat ini</label><input id="old-password" type="password" name="old_password" required autocomplete="current-password"></div><div class="field"><label for="new-password">Kata sandi baru (minimal 12 karakter)</label><input id="new-password" type="password" name="new_password" minlength="12" required autocomplete="new-password"></div><div class="field"><label for="new-password-confirmation">Ulangi kata sandi baru</label><input id="new-password-confirmation" type="password" name="new_password_confirmation" minlength="12" required autocomplete="new-password"></div></div><div class="form-actions"><button class="button secondary" type="submit">Ganti kata sandi</button></div></form></section>
+        <section class="card"><h2>RSS, sitemap, dan tautan publik</h2><p class="fine-print">RSS dinamis tersedia di <a href="../feed.xml" target="_blank" rel="noopener noreferrer">feed.xml</a>. Sitemap tersedia di <a href="../sitemap.xml" target="_blank" rel="noopener noreferrer">sitemap.xml</a>. Daftar artikel terbit diperbarui otomatis oleh backend. Periksa domain dan konten contoh sebelum situs diumumkan.</p></section>
+      <?php endif; ?>
+    </main>
+  </div>
+</body>
+</html>
+ </div>
+</body>
+</html>
+d" name="old_password" required autocomplete="current-password"></div><div class="field"><label for="new-password">Kata sandi baru (minimal 12 karakter)</label><input id="new-password" type="password" name="new_password" minlength="12" required autocomplete="new-password"></div><div class="field"><label for="new-password-confirmation">Ulangi kata sandi baru</label><input id="new-password-confirmation" type="password" name="new_password_confirmation" minlength="12" required autocomplete="new-password"></div></div><div class="form-actions"><button class="button secondary" type="submit">Ganti kata sandi</button></div></form></section>
         <section class="card"><h2>RSS, sitemap, dan tautan publik</h2><p class="fine-print">RSS dinamis tersedia di <a href="../feed.xml" target="_blank" rel="noopener noreferrer">feed.xml</a>. Sitemap tersedia di <a href="../sitemap.xml" target="_blank" rel="noopener noreferrer">sitemap.xml</a>. Daftar artikel terbit diperbarui otomatis oleh backend. Periksa domain dan konten contoh sebelum situs diumumkan.</p></section>
       <?php endif; ?>
     </main>

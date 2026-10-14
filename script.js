@@ -159,6 +159,7 @@ function setCMSValue(key, value) {
 }
 
 function applySettings(settings = {}) {
+  const isPpdbPage = Boolean(document.querySelector("#ppdb-form"));
   const textKeys = [
     "brand_short", "brand_tagline", "hero_kicker", "hero_title", "hero_subtitle",
     "hero_highlight", "hero_description", "location_text", "about_title", "about_highlight",
@@ -166,6 +167,7 @@ function applySettings(settings = {}) {
     "dkv_title", "dkv_description", "tkr_title", "tkr_description", "school_name", "school_address", "contact_address",
     "fact_dkv_code", "fact_dkv_title", "fact_dkv_detail", "fact_tkr_code", "fact_tkr_title", "fact_tkr_detail",
     "fact_student_count", "fact_student_title", "fact_student_detail", "fact_teacher_count", "fact_teacher_title", "fact_teacher_detail",
+    "ppdb_page_title", "ppdb_page_highlight", "ppdb_page_intro", "ppdb_page_notice",
   ];
   textKeys.forEach((key) => setCMSValue(key, settings[key]));
 
@@ -203,7 +205,7 @@ function applySettings(settings = {}) {
     mark.classList.toggle("has-logo", Boolean(customLogo));
   });
 
-  if (settings.site_title) document.title = settings.site_title;
+  if (settings.site_title && !isPpdbPage) document.title = settings.site_title;
   if (settings.meta_description) {
     const description = document.querySelector('[data-cms-meta="description"]');
     if (description) description.content = settings.meta_description;
@@ -212,7 +214,7 @@ function applySettings(settings = {}) {
     const canonical = document.querySelector('link[rel="canonical"]');
     let canonicalBase = String(settings.site_url);
     while (canonicalBase.endsWith("/")) canonicalBase = canonicalBase.slice(0, -1);
-    if (canonical) canonical.href = `${canonicalBase}/`;
+    if (canonical) canonical.href = `${canonicalBase}${isPpdbPage ? "/ppdb.html" : "/"}`;
   }
 
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(settings.contact_email || ""))) {
@@ -329,6 +331,7 @@ async function loadSchoolContent() {
     applySchoolContent(window.SCHOOL_CMS_DATA);
     return;
   }
+  if (!document.querySelector("[data-cms], [data-cms-image]")) return;
   try {
     const response = await fetch("api/home.php", { headers: { Accept: "application/json" }, cache: "no-store" });
     if (!response.ok) return;

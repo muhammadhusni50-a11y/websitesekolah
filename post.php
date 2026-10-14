@@ -53,7 +53,7 @@ $canonical = $post ? site_url('post.php?slug=' . rawurlencode((string) $post['sl
     .post-cover { width: 100%; max-height: 470px; object-fit: cover; background: var(--green-soft); }
     .post-content { padding: clamp(23px, 5vw, 50px); }
     .post-category { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .post-content h1 { margin: 8px 0 9px; color: var(--ink); font-family: "Bricolage Grotesque", sans-serif; font-size: clamp(31px, 5vw, 48px); line-height: 1.12; letter-spacing: -.04em; }
+    .post-content h1 { margin: 8px 0 9px; color: var(--ink); font-family: var(--font-display); font-size: clamp(31px, 5vw, 48px); line-height: 1.12; letter-spacing: -.04em; }
     .post-date { margin: 0 0 24px; color: var(--muted); font-size: 12px; }
     .post-excerpt { padding-bottom: 17px; border-bottom: 1px solid var(--line); color: #344f42; font-size: 17px; font-weight: 650; line-height: 1.7; }
     .post-body { color: #35483e; font-size: 15px; line-height: 1.9; white-space: normal; }

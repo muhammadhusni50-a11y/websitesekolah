@@ -20,6 +20,7 @@ $xml = static function ($value): string {
 };
 $lastmod = date('Y-m-d');
 $urls = '  <url><loc>' . $xml(site_url()) . '</loc><lastmod>' . $lastmod . '</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>';
+$urls .= "\n  <url><loc>" . $xml(site_url('ppdb.html')) . '</loc><lastmod>' . $lastmod . '</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>';
 foreach ($posts as $post) {
     $published = strtotime((string) ($post['published_at'] ?? ''));
     $modified = strtotime((string) ($post['updated_at'] ?? ''));
